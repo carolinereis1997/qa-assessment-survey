@@ -1,0 +1,45 @@
+image: node:20
+
+stages:
+  - install
+  - lint
+  - build
+  - test
+
+cache:
+  key:
+    files:
+      - '**/package.json'
+  paths:
+    - node_modules/
+    - apps/*/node_modules/
+
+install:
+  stage: install
+  script:
+    - npm install
+  artifacts:
+    paths:
+      - node_modules/
+      - apps/*/node_modules/
+    expire_in: 1 hour
+
+lint:
+  stage: lint
+  needs: ["install"]
+  script:
+    - npm run lint
+
+build:
+  stage: build
+  needs: ["install"]
+  script:
+    - npm run build
+
+test:
+  stage: test
+  needs: ["build"]
+  script:
+    - echo "TODO (candidato): rode aqui a sua pirâmide de testes."
+    - echo "Unitário + integração: npm test (Vitest, na raiz)"
+    - echo "E2E: npm run test:e2e (requer a aplicação no ar)"

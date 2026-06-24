@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum pergunta_tipo {
+  texto_grande
+  multipla_escolha
+  opcoes_diversas
+  pontuacao_0_a_5
+  pontuacao_0_a_10
+  nivel_satisfacao
+  qualidade_percebida
+}
+
+enum opcoes_padronizadas {
+  // nivel_satisfacao
+  muito_satisfeito
+  satisfeito
+  indiferente
+  insatisfeito
+  muito_insatisfeito
+  // qualidade_percebida
+  excelente
+  bom
+  regular
+  ruim
+  pessimo
+}
+
+model empresa {
+  id        String     @id @default(uuid())
+  nome      String
+  pesquisas pesquisa[]
+  respostas resposta[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now())
+  deletedAt DateTime?
+}
+
+model pesquisa {
+  id               String     @id @default(uuid())
+  empresaId        String
+  empresa          empresa    @relation(fields: [empresaId], references: [id])
+  nome             String
+  descricao        String?    @db.Text
+  dataLancamento   DateTime
+  dataEncerramento DateTime?
+  estaAtiva        Boolean    @default(true)
+  idPublico        String     @unique @default(uuid())
+  perguntas        pergunta[]
+  respostas        resposta[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now())
+  deletedAt DateTime?
+
+  @@unique([empresaId, nome])
+}
+
+model pergunta {
+  id                  Int           @id @default(autoincrement())
+  pesquisaId          String
+  pesquisa            pesquisa      @relation(fields: [pesquisaId], references: [id], onDelete: Cascade)
+  nome                String
+  tipo                pergunta_tipo
+  respostaObrigatoria Boolean       @default(false)
+  justificarResposta  Boolean       @default(false)
+  permitirOutro       Boolean       @default(false)
+  opcoes              opcao[]
+  respostas           resposta[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now())
+  deletedAt DateTime?
+}
+
+model opcao {
+  id         Int        @id @default(autoincrement())
+  perguntaId Int
+  pergunta   pergunta   @relation(fields: [perguntaId], references: [id], onDelete: Cascade)
+  texto      String
+  respostas  resposta[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now())
+  deletedAt DateTime?
+}
+
+model resposta {
+  id                    Int                  @id @default(autoincrement())
+  pesquisaId            String
+  pesquisa              pesquisa             @relation(fields: [pesquisaId], references: [id], onDelete: Cascade)
+  empresaId             String
+  empresa               empresa              @relation(fields: [empresaId], references: [id])
+  perguntaId            Int
+  pergunta              pergunta             @relation(fields: [perguntaId], references: [id])
+  opcaoId               Int?
+  opcao                 opcao?               @relation(fields: [opcaoId], references: [id])
+  valorOpcaoPadronizada opcoes_padronizadas?
+  valorOpcaoTexto       String?              @db.Text
+  valorNumerico         Int?
+  outroTexto            String?
+  justificativaTexto    String?              @db.Text
+  iniciadoEm            DateTime?
+  finalizadoEm          DateTime?
+  criadoEm              DateTime             @default(now())
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now())
+  deletedAt DateTime?
+}
