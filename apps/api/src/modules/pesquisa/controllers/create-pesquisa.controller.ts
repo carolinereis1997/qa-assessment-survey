@@ -1,5 +1,4 @@
-import { Body, Controller, HttpCode, Post, UsePipes } from '@nestjs/common';
-import { ZodValidationPipe } from 'nestjs-zod';
+import { Body, Controller, HttpCode, Post } from '@nestjs/common';
 import { CreatePesquisaDto } from '../dtos/create-pesquisa.dto';
 import { CreatePesquisaService } from '../services/create-pesquisa.service';
 
@@ -9,7 +8,6 @@ export class CreatePesquisaController {
 
   @Post()
   @HttpCode(201)
-  @UsePipes(ZodValidationPipe)
   execute(@Body() body: CreatePesquisaDto) {
     return this.service.execute(body);
   }

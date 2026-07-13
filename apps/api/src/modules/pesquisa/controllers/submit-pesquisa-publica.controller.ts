@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  HttpCode,
-  Param,
-  Post,
-  UsePipes,
-} from "@nestjs/common";
-import { ZodValidationPipe } from "nestjs-zod";
+import { Body, Controller, HttpCode, Param, Post } from "@nestjs/common";
 import { SubmitPesquisaPublicaService } from "../services/submit-pesquisa-publica.service";
 import { SubmitPesquisaPublicaDto } from "../dtos/submit-pesquisa-publica.dto";
 
@@ -16,7 +8,6 @@ export class SubmitPesquisaPublicaController {
 
   @Post(":idPublico/respostas")
   @HttpCode(201)
-  @UsePipes(ZodValidationPipe)
   execute(
     @Param("idPublico") idPublico: string,
     @Body() body: SubmitPesquisaPublicaDto,
