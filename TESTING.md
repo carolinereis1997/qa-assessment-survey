@@ -77,3 +77,6 @@ Estágios: `install` → `lint` → `unit` → `integration` → `e2e`.
 
 ## Achado adicional (via seed)
 O seed revela um terceiro estado de bloqueio além de "inativa" e "encerrada": uma pesquisa com `dataLancamento` no futuro (`Pesquisa Futura`, ainda não começou). Os três estados — inativa, encerrada, futura — precisam ser cobertos separadamente nos testes de integração, pois representam motivos de negócio distintos mesmo retornando resposta parecida ao usuário.
+
+## Nota sobre o CI
+O `.gitlab-ci.yml` foi preenchido com os três jobs (`test:unit`, `test:integration`, `test:e2e`), mas não foi executado num GitLab real por falta de acesso a um runner — só validado localmente, rodando os comandos individualmente. Pode precisar de ajustes finos de sintaxe/timing (ex: tempo de espera do `wait-on`) na primeira execução real.
