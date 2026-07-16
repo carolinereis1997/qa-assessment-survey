@@ -4,13 +4,15 @@
 
 O app é um CRUD sem autenticação, com dois fluxos principais: **admin cria pesquisa** e **respondente responde pelo link público**. A complexidade real está em `pergunta` e `resposta`: existem 7 tipos de pergunta (`texto_grande`, `multipla_escolha`, `opcoes_diversas`, `pontuacao_0_a_5`, `pontuacao_0_a_10`, `nivel_satisfacao`, `qualidade_percebida`), cada um exigindo um campo diferente preenchido em `resposta` (`valorOpcaoTexto`, `opcaoId`, `valorNumerico`, `valorOpcaoPadronizada`), mais três flags por pergunta (`respostaObrigatoria`, `justificarResposta`, `permitirOutro`) que mudam o que é uma resposta válida. Essa combinação tipo × flag × valor é o maior risco do sistema, e é barata de testar sem navegador — por isso o orçamento pesa em unitário/integração, com e2e enxuto cobrindo só os caminhos críticos ponta a ponta.
 
-## Orçamento (30 testes)
+## Orçamento (30 testes planejados / 25 implementados)
 
-| Camada       | Qtde | %   |
-|--------------|------|-----|
-| Unitário     | 16   | 53% |
-| Integração   | 9    | 30% |
-| E2E          | 5    | 17% |
+| Camada       | Planejado | Implementado |
+|--------------|-----------|--------------|
+| Unitário     | 16        | 18           |
+| Integração   | 9         | 5            |
+| E2E          | 5         | 2            |
+
+Por restrição de tempo, priorizei as validações de domínio (tipo de pergunta, campos permitidos, obrigatoriedade) e os 3 estados de bloqueio de pesquisa em integração, deixando de fora alguns casos de integração (criação de pesquisa via POST, duplicidade de nome) e e2e (fluxo completo de admin criando pesquisa) que estão descritos abaixo como planejados mas não implementados nesta entrega.
 
 ### Unitário (16)
 
@@ -80,3 +82,9 @@ O seed revela um terceiro estado de bloqueio além de "inativa" e "encerrada": u
 
 ## Nota sobre o CI
 O `.gitlab-ci.yml` foi preenchido com os três jobs (`test:unit`, `test:integration`, `test:e2e`), mas não foi executado num GitLab real por falta de acesso a um runner — só validado localmente, rodando os comandos individualmente. Pode precisar de ajustes finos de sintaxe/timing (ex: tempo de espera do `wait-on`) na primeira execução real.
+
+## Bug encontrado (exploração manual)
+Na listagem de pesquisas (`/pesquisas`), a coluna "Status" mostra "Ativa" para as três pesquisas do seed — incluindo "Pesquisa Encerrada" e "Pesquisa Futura" — mesmo que ambas bloqueiem a resposta na prática (mensagem "Pesquisa não encontrada ou indisponível para respostas" ao tentar responder). A tela reflete o campo `estaAtiva` literalmente, sem considerar `dataLancamento`/`dataEncerramento`. Isso é uma inconsistência entre o que o usuário vê e o comportamento real — candidato a um teste de integração/e2e adicional caso o orçamento permitisse.
+
+## Achado adicional (via testes unitários)
+`validateRequiredFields` só valida `justificarResposta` quando `respostaObrigatoria` também é `true` — uma pergunta opcional com `justificarResposta = true` nunca chega a cobrar a justificativa, porque a função retorna cedo. Não está claro pelo enunciado se isso é intencional; vale confirmar com o time de produto antes de tratar como bug.
