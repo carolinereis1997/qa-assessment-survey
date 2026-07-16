@@ -36,10 +36,52 @@ build:
   script:
     - npm run build
 
-test:
+test:unit:
   stage: test
   needs: ["build"]
   script:
-    - echo "TODO (candidato): rode aqui a sua pirâmide de testes."
-    - echo "Unitário + integração: npm test (Vitest, na raiz)"
-    - echo "E2E: npm run test:e2e (requer a aplicação no ar)"
+    - npx vitest run tests/unit
+
+test:integration:
+  stage: test
+  needs: ["build"]
+  services:
+    - mysql:8
+  variables:
+    MYSQL_ROOT_PASSWORD: root
+    MYSQL_DATABASE: survey_db
+    DATABASE_URL: "mysql://root:root@mysql:3306/survey_db"
+  script:
+    - cd apps/api
+    - npx prisma migrate deploy
+    - npx prisma db seed
+    - cd ../..
+    - npm run dev:api &
+    - npx wait-on http://localhost:3000
+    - npx vitest run tests/integration
+
+test:e2e:
+  stage: test
+  needs: ["build"]
+  services:
+    - mysql:8
+  variables:
+    MYSQL_ROOT_PASSWORD: root
+    MYSQL_DATABASE: survey_db
+    DATABASE_URL: "mysql://root:root@mysql:3306/survey_db"
+  script:
+    - cd apps/api
+    - npx prisma migrate deploy
+    - npx prisma db seed
+    - cd ../..
+    - npm run dev:api &
+    - npm run dev:web &
+    - npx wait-on http://localhost:3000 http://localhost:5173
+    - npx playwright install --with-deps
+    - npm run test:e2e
+  artifacts:
+    when: always
+    paths:
+      - test-results/
+    expire_in: 1 week
+  
